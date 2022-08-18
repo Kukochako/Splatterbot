@@ -362,8 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-/bin
-/obj
-/.vs
-/Properties
+Splatterbot/Splatterbot/bin
+Splatterbot/Splatterbot/obj
+Splatterbot/.vs
+Splatterbot/Splatterbot/Properties/PublishProfiles/
 /*.user
