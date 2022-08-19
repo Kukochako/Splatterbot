@@ -164,6 +164,7 @@ namespace Splatterbot.Commands
             string imageURL = imagePrefix + dobj["details"][0]["stage"]["image"];
             string remainingText, activeText; //These strings will determine what text will appear in the embed depending if the current run is active or not
 
+
             //Find the next run listed in the JSON that hasn't already ended
             int i = 0; //Control variable that is used to determine which run is the closest and hasn't elapsed already
             while ((double)dobj["details"][i]["end_time"] < (double)DateTimeOffset.Now.ToUnixTimeSeconds()) { i++; }
@@ -199,6 +200,15 @@ namespace Splatterbot.Commands
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~TEXT FORMATTING AND PRINTING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+            string[] weapons = new string[4]; //String that will hold the path for the names of the weapon for the current salmon run
+            for (i = 0; i < 4; i++)
+            {
+                if (dobj["details"][0]["weapons"][i]["id"].ToString().Equals("-1")) //Checks if the weapon for this slot is a special weapon
+                    weapons[i] = dobj["details"][0]["weapons"][i]["coop_special_weapon"]["name"];
+                else
+                    weapons[i] = dobj["details"][0]["weapons"][i]["name"]["name"];
+            }
+
             var embed = new Discord.EmbedBuilder { };
             embed
                 .WithTitle("**__Salmon Run Schedule:__**\n")
@@ -207,10 +217,10 @@ namespace Splatterbot.Commands
                 .AddField("**Current Map** \n",
                 map + "\n")
                 .AddField("**Weapons** \n",
-                dobj["details"][i]["weapons"][0]["weapon"]["name"] + ", " +
-                dobj["details"][i]["weapons"][1]["weapon"]["name"] + ", " +
-                dobj["details"][i]["weapons"][2]["weapon"]["name"] + ", " +
-                dobj["details"][i]["weapons"][3]["weapon"]["name"] + "\n")
+                weapons[0] + ", " +
+                weapons[1] + ", " +
+                weapons[2] + ", " +
+                weapons[3] + "\n")
                 .AddField(remainingText,
                 hours + " hours " + mins + " minutes " + seconds + " seconds ")
                 .WithColor(Discord.Color.Orange);
