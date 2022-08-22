@@ -206,7 +206,7 @@ namespace Splatterbot.Commands
                 if (dobj["details"][0]["weapons"][i]["id"].ToString().Equals("-1")) //Checks if the weapon for this slot is a special weapon
                     weapons[i] = dobj["details"][0]["weapons"][i]["coop_special_weapon"]["name"];
                 else
-                    weapons[i] = dobj["details"][0]["weapons"][i]["name"]["name"];
+                    weapons[i] = dobj["details"][0]["weapons"][i]["weapon"]["name"];
             }
 
             var embed = new Discord.EmbedBuilder { };
