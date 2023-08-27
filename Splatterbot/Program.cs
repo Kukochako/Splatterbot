@@ -15,6 +15,7 @@ using Splatterbot.LargeArrayData;
 using Discord.Interactions.Builders;
 using Newtonsoft.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.ComponentModel.DataAnnotations;
 
 namespace Splatterbot
 {
@@ -60,7 +61,6 @@ namespace Splatterbot
             await _client.StartAsync();
             await Task.Delay(-1); //Prevents bot from closing immediately
 
-
         }
 
         public async Task RegisterCommandsAsync()
@@ -77,6 +77,18 @@ namespace Splatterbot
             return Task.CompletedTask;
         }
 
+        public async Task MessageReceivedAsync(SocketMessage arg)
+        {
+            var command = arg as SocketUserMessage;
+            var context = new CommandContext(_client, command);
+
+            if(command.Content.Equals("dye"))
+            {
+                await context.Channel.SendMessageAsync("no u");
+            }
+            //command implementation here
+        }
+
         //FUNCTION: HandleCommandAsync
         //DESCRIPTION: Determines what actions the bot will take when it receives a message depending on the messages contents
         private async Task HandleCommandAsync(SocketMessage arg)
@@ -87,12 +99,37 @@ namespace Splatterbot
             if (command.Author.IsBot) return; //If the command being sent to the bot is another bot, ignore the command
 
             int argPos = 0;
+
             if (command.HasStringPrefix("$$", ref argPos))
-            { //To issue a command to the bot, "$" is the prefix you will place before you try calling a command
+            { //To issue a command to the bot, "$$" is the prefix you will place before you try calling a command
 
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason); //Debug Line for any errors
 
+            }
+            //if a real command isn't sent, check for jokes
+            else {
+                //Handler for whenever someone sends a message with a word ending ending in -er or -or
+                string[] words = command.Content.Split(new char[] {' '}); //contains the user turned into an array divided by spaces
+                
+                //loops through each word in the sentence until it finds the first word that ends in -er or -or
+                for(int i = 0; i < words.Length; i++){
+                    //await context.Channel.SendMessageAsync(words[i]);
+                    
+                    //first checks word length to make sure its not one char
+                    if(words[i].Length > 1){
+                        //await context.Channel.SendMessageAsync(words[i][0].ToString());
+                        //if the length is greater than one, check the last two characters to see if it ends in er or or
+                        if(
+                            (words[i][words[i].Length-2].ToString().Equals("e") || (words[i][words[i].Length-2].ToString().Equals("o")))
+                            &&
+                            (words[i][words[i].Length-1].ToString().Equals("r"))
+                        ){
+                            await context.Channel.SendMessageAsync(words[i] + "? I barely know her!");
+                            break;
+                        }
+                    }
+                }
             }
 
             _client.ButtonExecuted += menuButtonHandler; //When buttons are clicked, refer to the menuButton Handler to see what to do
