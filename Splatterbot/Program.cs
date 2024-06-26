@@ -16,6 +16,8 @@ using Discord.Interactions.Builders;
 using Newtonsoft.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.ComponentModel.DataAnnotations;
+using Discord.Net;
+using Discord.Interactions;
 
 namespace Splatterbot
 {
@@ -33,6 +35,7 @@ namespace Splatterbot
 
         private DiscordSocketClient _client;
         private CommandService _commands;
+        private InteractionService _interaction;
         private IServiceProvider _services;
 
         public async Task RunBotAsync()
@@ -42,34 +45,106 @@ namespace Splatterbot
             //Directory.SetCurrentDirectory(dir);
             _client = new DiscordSocketClient();
             _commands = new CommandService();
+            _interaction = new InteractionService(_client);
+
             //The singletons in the services variable ensure that only one instance of the _client and _commands are created
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
+                .AddSingleton<InteractionService>(p => new InteractionService(p.GetRequiredService<DiscordShardedClient>()))
                 .BuildServiceProvider();
 
-            string dir = Environment.CurrentDirectory; //Gets current director of project folder
+            string dir = Environment.CurrentDirectory; //Gets current directory of project folder
             StreamReader r = new StreamReader(dir + "//config.json"); 
             string jsonString = r.ReadToEnd();
 
             token = JsonConvert.DeserializeObject<dynamic>(jsonString);
 
             _client.Log += _client_Log;
+            _client.Ready += _client_Ready;
+            _client.InteractionCreated += InteractionHandler;
+            _interaction.SlashCommandExecuted += SlashCommandExecuted;
 
-            await RegisterCommandsAsync();
+            await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _services); //adds commands to the service module
+            //await RegisterCommandsAsync();
             await _client.LoginAsync(TokenType.Bot, token["key"].ToString());
             await _client.StartAsync();
             await Task.Delay(-1); //Prevents bot from closing immediately
 
         }
 
-        public async Task RegisterCommandsAsync()
+        //Registers the commands created eitehr globally or server specific
+        public async Task _client_Ready() {
+
+            //await _client.Rest.DeleteAllGlobalCommandsAsync(); // Clear global command chache
+
+            await _interaction.RegisterCommandsGloballyAsync(); //register commands globally
+            //await _interaction.RegisterCommandsToGuildAsync(459193626736721921); //testing slash commands
+
+        }
+
+        //Error catching that occurs whenever a command is executed
+        private async Task SlashCommandExecuted(SlashCommandInfo scInfo, IInteractionContext iContext, Discord.Interactions.IResult iResult)
+        {
+            if (!iResult.IsSuccess)
+            {
+                switch (iResult.Error)
+                {
+                    case InteractionCommandError.UnmetPrecondition:
+                        await iContext.Interaction.RespondAsync($"Unmet Precondition: {iResult.ErrorReason}");
+                        break;
+                    case InteractionCommandError.UnknownCommand:
+                        await iContext.Interaction.RespondAsync("Unknown command");
+                        break;
+                    case InteractionCommandError.BadArgs:
+                        await iContext.Interaction.RespondAsync("Invalid number or arguments");
+                        break;
+                    case InteractionCommandError.Exception:
+                        await iContext.Interaction.RespondAsync($"Command exception: {iResult.ErrorReason}");
+                        break;
+                    case InteractionCommandError.Unsuccessful:
+                        await iContext.Interaction.RespondAsync("Command could not be executed");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        //Handler for what to do when a command is sent to the bot
+        private async Task InteractionHandler(SocketInteraction si) {
+            
+            //Run slash command 
+            try
+            {
+                var ctx = new SocketInteractionContext(_client, si);
+                await _interaction.ExecuteCommandAsync(ctx, _services);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+
+                //If slash command fails, the default response we set up at the beginning of the command may still exist, so delete the response
+                var ctx = new SocketInteractionContext(_client, si);
+                if (si.Type == InteractionType.ApplicationCommand)
+                    await si.GetOriginalResponseAsync().ContinueWith(async (msg) => await msg.Result.DeleteAsync());
+            }
+
+            _client.ButtonExecuted += menuButtonHandler; //When buttons are clicked, refer to the menuButton Handler to see what to do
+            _client.SelectMenuExecuted += myMenuHandler; //When Dropdown Menus are clicked, refer to the myMenuHandler Handler to see what to do
+            _client.UserJoined += userJoined; //When bot joins server, refer userJoined to see printed out text
+        }
+
+
+
+
+        /*public async Task RegisterCommandsAsync()
         {
 
             _client.MessageReceived += HandleCommandAsync; //Handle for when the bot receives a message
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
 
-        }
+        }*/
 
         private Task _client_Log(LogMessage arg)
         {
@@ -91,7 +166,7 @@ namespace Splatterbot
 
         //FUNCTION: HandleCommandAsync
         //DESCRIPTION: Determines what actions the bot will take when it receives a message depending on the messages contents
-        private async Task HandleCommandAsync(SocketMessage arg)
+        /*private async Task HandleCommandAsync(SocketMessage arg)
         {
             var command = arg as SocketUserMessage;
             var context = new CommandContext(_client, command);
@@ -100,9 +175,9 @@ namespace Splatterbot
 
             int argPos = 0;
 
+
             if (command.HasStringPrefix("$$", ref argPos))
             { //To issue a command to the bot, "$$" is the prefix you will place before you try calling a command
-
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
                 if (!result.IsSuccess) Console.WriteLine(result.ErrorReason); //Debug Line for any errors
 
@@ -135,7 +210,7 @@ namespace Splatterbot
             _client.ButtonExecuted += menuButtonHandler; //When buttons are clicked, refer to the menuButton Handler to see what to do
             _client.SelectMenuExecuted += myMenuHandler; //When Dropdown Menus are clicked, refer to the myMenuHandler Handler to see what to do
             _client.UserJoined += userJoined; //When bot joins server, refer userJoined to see printed out text
-        }
+        }*/
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~EVENT HANDLER FUNCTIONS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
         //Event Handler for what happens when the buttons for the splatnet menu are selected

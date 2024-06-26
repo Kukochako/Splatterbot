@@ -97,7 +97,7 @@ namespace Splatterbot.LargeArrayData
         "While this bot is coded on my own, I pull from a variety of resources to help create this:\n" +
         "\t**Splatoon2.ink** - This website is where I pull most of my information regarding map info for. You can find the database at https://github.com/misenhower/splatoon2.ink \n" +
         "\t-All images used in my bot are from Imgur (https://imgur.com/) \n\n" +
-        "If you need to message me for any reason, feel free to send a DM to `Kukochako#3491`\n" +
+        "If you need to message me for any reason, feel free to send a DM to `SpaceLechuga` on Discord!\n" +
         "This bot was coded using Discord.Net",
         
         //-------------------------------------------------------------------------------------------------------------------------//
@@ -108,7 +108,7 @@ namespace Splatterbot.LargeArrayData
         "To see all the things I can do, type `$$help`\n" +
         "I do plan on implementing features for Splatoon 3 so stay tuned\n\n" +
 
-        "If you have any questions or recommendations, feel free to send a DM to `Kukochako#3491`!\n" +
+        "If you have any questions or recommendations, feel free to send a DM to `SpaceLechuga` on Discord!\n" +
         "I'll do my best to roll out updates and fixes as fast as I can! \n" +
         "Happy Splatting!"
 

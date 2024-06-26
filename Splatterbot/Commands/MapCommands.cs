@@ -4,14 +4,16 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Newtonsoft.Json;
 using Splatterbot.Functions;
 
 namespace Splatterbot.Commands
 {
     //This Class is used to determine the different actions that will be taken depending on the users input message
-    public class MapCommands : ModuleBase<CommandContext>
+    public class MapCommands : InteractionModuleBase //ModuleBase<CommandContext>
     {
 
         string imagePrefix = "https://splatoon2.ink/assets/splatnet"; //contains the prefix for the image links stored in the JSON files
@@ -21,9 +23,11 @@ namespace Splatterbot.Commands
 
         //COMMAND: TIME
         //DESCRIPTION: Prints out the time left in the current rotation
-        [Command("time")]
+        [SlashCommand("time", "Prints out the time left in the current rotation")]
         public async Task TimeLeft()
         {
+
+            await DeferAsync(); //send default response that we will edit with the actual message content
 
             dynamic dobj = JsonGetters.getMap();
 
@@ -47,14 +51,16 @@ namespace Splatterbot.Commands
 
 
 
-            await ReplyAsync(embed: embed.Build()); //build the embed then send when ready
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready
         }
 
         //COMMAND: TURF
         //DESCRIPTION: Prints out current and upcoming maps realted to Turf War 
-        [Command("turf")]
-        public async Task Turf()
+        [SlashCommand("turf2", "Prints out current and upcoming maps realted to Turf War ")]
+        public async Task Turf2()
         {
+            await DeferAsync();
+
             dynamic dobj = JsonGetters.getMap();
 
             //Turf War Info
@@ -74,15 +80,18 @@ namespace Splatterbot.Commands
                 tmap2 + "\n")
                 .WithColor(Discord.Color.Green);
 
-            await ReplyAsync(embed: embed.Build()); //build the embed then send when ready
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready
 
         }
 
         //COMMAND: RANKED
         //DESCRIPTION: Prints out current and upcoming maps as well as game types for Ranked Battle 
-        [Command("ranked")]
-        public async Task Ranked()
+        [SlashCommand("ranked2", "Prints out current and upcoming maps as well as game types for Ranked Battle")]
+        public async Task Ranked2()
         {
+
+            await DeferAsync();
+
             dynamic dobj = JsonGetters.getMap();
 
             //Ranked Battle Info
@@ -110,15 +119,18 @@ namespace Splatterbot.Commands
                 rmap2 + "\n")
                 .WithColor(Discord.Color.DarkOrange);
 
-            await ReplyAsync(embed: embed.Build()); //build the embed then send when ready
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready
 
         }
 
         //COMMAND: LEAGUE
         //DESCRIPTION: Prints out current and upcoming maps as well as game types for League Battle 
-        [Command("league")]
-        public async Task League()
+        [SlashCommand("league2", "Prints out current and upcoming maps as well as game types for League Battle")]
+        public async Task League2()
         {
+
+            await DeferAsync();
+
             dynamic dobj = JsonGetters.getMap();
 
             string URL1 = imagePrefix + dobj["league"][0]["stage_a"]["image"];
@@ -149,15 +161,18 @@ namespace Splatterbot.Commands
                 lmap2 + "\n")
                 .WithColor(Discord.Color.DarkMagenta);
 
-            await ReplyAsync(embed: embed.Build()); //build the embed then send when ready
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready
 
         }
 
         //COMMAND: SALMON
         //DESCRIPTION: Prints out current and upcoming maps as well as weapons for Salmon Run as well as available weapons
-        [Command("salmon")]
-        public async Task Salmon()
+        [SlashCommand("salmon2", "Prints out current and upcoming maps as well as weapons for Salmon Run as well as available weapons")]
+        public async Task Salmon2()
         {
+
+            await DeferAsync();
+
             dynamic dobj = JsonGetters.getSalmon();
 
             string map = dobj["details"][0]["stage"]["name"].ToString();
@@ -225,49 +240,50 @@ namespace Splatterbot.Commands
                 hours + " hours " + mins + " minutes " + seconds + " seconds ")
                 .WithColor(Discord.Color.Orange);
 
-            await ReplyAsync(embed: embed.Build()); //build the embed then send when ready                
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready      
         }
 
-        //COMMAND: MAPS
+/*        //COMMAND: MAPS
         //DESCRIPTION: Prints out current and upcoming maps 
-        [Command("maps")]
-        public async Task Maps()
+        [SlashCommand("maps2", "Prints out current and upcoming maps")]
+        public async Task Map2()
         {
 
             //Calls all the corresponding functions
-            await Turf();
-            await Ranked();
-            await League();
+            await Turf2();
+            await Ranked2();
+            await League2();
             await TimeLeft();
 
         }
 
         //COMMAND: GAMEMODES
         //DESCRIPTION: Prints out current and upcoming maps as well as game types for all relavent gamemodes and time left unil the start of next
-        [Command("gamemodes")]
-        public async Task Gamemodes()
+        [SlashCommand("gamemodes2", "Prints out current and upcoming maps as well as game types for all relavent gamemodes")]
+        public async Task Gamemodes2()
         {
 
             //Calls all the corresponding functions
-            await Turf();
-            await Ranked();
-            await League();
+            await Turf2();
+            await Ranked2();
+            await League2();
             await TimeLeft();
-            await Salmon();
+            await Salmon2();
 
-        }
+        }*/
 
         //COMMAND: WHENIS
         //DESCRIPTION: Returns when the next occurrance of a map or gamemode is 
-        [Command("whenis")]
-        public async Task whenIs([Remainder] string stdin)
+        [SlashCommand("whenis2", "Returns when the next occurrance of a map or gamemode is")]
+        public async Task whenIs([Remainder] string name)
         {
+            await DeferAsync();
 
             dynamic dobj = JsonGetters.getMap(); //Grabs relavent map data
 
             bool isMap = true; //Used to determine wheter or not a map or gamemode is being searched for
-            string key = stdin; //Moves user input into a temp string that can be modified
-            string noText = stdin + " does not seem to appear anytime soon...";
+            string key = name; //Moves user input into a temp string that can be modified
+            string noText = name + " does not seem to appear anytime soon...";
 
             double[] times = { 0, 0, 0 }; //Containes the times when the desired gamemodes/maps occur
                                           //0 - Will refer to turf war
@@ -337,7 +353,8 @@ namespace Splatterbot.Commands
 
             if (times[0] == 0 && times[1] == 0 && times[2] == 0)
             { //No time is found
-                await Context.Channel.SendMessageAsync("Can't find any times for " + stdin + " in the near future :(");
+                string errorMsg = "Can't find any times for your specified map in the near future :( Check your spelling.";
+                await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Content = errorMsg; }); //build the embed then send when ready
             }
             else
             {
@@ -360,7 +377,7 @@ namespace Splatterbot.Commands
                     if (times[1] != 0) { realTime2 = convertTime(times[1]); temp2 = realTime2[0] + " hours " + realTime2[1] + " minutes " + realTime2[2] + " seconds "; }
                     if (times[2] != 0) { realTime3 = convertTime(times[2]); temp3 = realTime3[0] + " hours " + realTime3[1] + " minutes " + realTime3[2] + " seconds "; }
 
-                    embed.WithTitle("**__Time until the next appearance of " + stdin + " in:__**\n")
+                    embed.WithTitle("**__Time until the next appearance of " + name + " in:__**\n")
                         .AddField("**Turf War**",
                         temp1) //+ " " + temp)
                         .AddField("**Ranked Battle** \n",
@@ -369,7 +386,7 @@ namespace Splatterbot.Commands
                         temp3 + "\n")
                         .WithColor(Discord.Color.Teal);
 
-                    await ReplyAsync(embed: embed.Build()); //build the embed then send when ready                
+                    await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready    
 
                 }
                 else
@@ -381,14 +398,14 @@ namespace Splatterbot.Commands
                     if (times[1] != 0) { realTime2 = convertTime(times[1]); temp2 = realTime2[0] + " hours " + realTime2[1] + " minutes " + realTime2[2] + " seconds "; }
                     if (times[2] != 0) { realTime3 = convertTime(times[2]); temp3 = realTime3[0] + " hours " + realTime3[1] + " minutes " + realTime3[2] + " seconds "; }
 
-                    embed.WithTitle("**__Time until the next appearance of " + stdin + " in:__**\n")
+                    embed.WithTitle("**__Time until the next appearance of " + name + " in:__**\n")
                         .AddField("**Ranked Battle** \n",
                         temp2 + "\n")
                         .AddField("**League Battle** \n",
                         temp3 + "\n")
                         .WithColor(Discord.Color.Teal);
 
-                    await ReplyAsync(embed: embed.Build()); //build the embed then send when ready     
+                    await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); }); //build the embed then send when ready    
 
                 }
             }

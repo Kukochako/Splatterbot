@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using Discord.Interactions.Builders;
 using Newtonsoft.Json;
 using Splatterbot.Functions;
+using Discord.Interactions;
 
 namespace Splatterbot.Commands
 {
@@ -17,7 +18,7 @@ namespace Splatterbot.Commands
     //Implementation of IEmote interface allows for the use of functions related to emojis
     public interface IEmote { }
 
-    public class GearCommands : ModuleBase<CommandContext>, IEmote
+    public class GearCommands : InteractionModuleBase //ModuleBase<CommandContext>, IEmote
     {
         //JSON data for gear related commands
         dynamic splatnetDobj = JsonGetters.getNet();
@@ -28,9 +29,11 @@ namespace Splatterbot.Commands
         //Produces Information related to what gear is currently available with their stats and prices
 
         //Nintendo Switch Online Store
-        [Command("splatnet")]
-        public async Task splatnet()
+        [SlashCommand("splatnet2", "Get the current gear in the Splatoon 2 splatnet store")]
+        public async Task splatnet2()
         {
+
+            await DeferAsync(); //send default response that we will edit with the actual message content
 
             dynamic net = JsonGetters.getNet();
             //Implements a feature where text will change depending on a given emote allowing the bot to essentially create a scrollable list
@@ -73,7 +76,7 @@ namespace Splatterbot.Commands
                     builder.WithButton(net["merchandises"][j]["original_gear"]["name"].ToString(), "splatnet" + j, Discord.ButtonStyle.Primary, null, null, true, 0);
             }
 
-            await Context.Channel.SendMessageAsync(embed: embed.Build(), components: builder.Build()); //channel.SendMessageAsync(embed: embed.Build());//ReplyAsync(embed: embed.Build()); //build the embed then send when 
+            await  Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); message.Components = builder.Build(); }); //build the embed then send when ready
 
         }
 

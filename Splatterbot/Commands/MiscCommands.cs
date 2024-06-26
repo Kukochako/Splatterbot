@@ -12,30 +12,33 @@ using Newtonsoft.Json;
 using Splatterbot.Functions;
 using Splatterbot.LargeArrayData;
 using Splatterbot;
+using Discord.Interactions;
 
 namespace Splatterbot.Commands
 {
-    public class MiscCommands : ModuleBase<CommandContext>
+    public class MiscCommands : InteractionModuleBase //ModuleBase<CommandContext>
     {
 
         //Miscellaneous Commands
 
         //COMMAND: PING
         //DESCRIPTION: Test Command Used to return values
-        [Command("ping")]
+        [SlashCommand("ping", "pong time")]
         public async Task Ping()
         {
+            await DeferAsync(); //send default response that we will edit with the actual message content
 
-            await ReplyAsync("pong");
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Content = "pong"; });
 
         }
 
         //COMMAND: RANDOMWEP
         //DESCRIPTION: PRODUCES A RANDOM WEAPON NAME. 
-        //PARAMETERS: $$RANDOMWEP [WEAPON TYPE]
-        [Command("randomwep")]
-        public async Task randomWep()
+        [SlashCommand("randomwep2", "gives you a random Splatoon 2 weapon")]
+        public async Task randomWep2()
         {
+            await DeferAsync();
+
             //Grabbing of relavent data to randomly select from
             dynamic dobj = JsonGetters.getWeaponIndex(); //List of all weapons
             int[] indexArray = WeaponArray.getWeaponIndex(); //List of their indicies, because the JSON file doesn't linerally order all the numbers
@@ -53,15 +56,16 @@ namespace Splatterbot.Commands
             var builder = new ComponentBuilder()
                 .WithButton("Re-roll!", "reroll");
 
-            await Context.Channel.SendMessageAsync(embed: embed.Build(), components: builder.Build());
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); message.Components = builder.Build(); });
         }
 
         //COMMAND: HELP
         //DESCRIPTION: PRODUCES INFORMATION ON A COMMAND OR LISTS ALL COMMANDS 
-        //PARAMETERS: $$HELP [COMMAND]
-        [Command("help")]
+        [SlashCommand("help", "Look at information related to bot commands")]
         public async Task Help()
         {
+            await DeferAsync();
+
             //Grabbing of relavent data to randomly select from
             string[] text = TextArray.getBodyText();
 
@@ -69,7 +73,9 @@ namespace Splatterbot.Commands
             var embed = new Discord.EmbedBuilder { };
             embed
                  .AddField("Select an option in the drop down menu to find the relavent tab for a function",
-                 "All my functions start with the prefix '$$' and are called using lowercase characters.\n" + "This textbox will update when you select an option\n")
+                 "All my functions are accessed with slash commands and are called using lowercase characters.\n" + 
+                 "Splatoon 2 and 3 functions are differentiated by typing 2 or 3 after the function name respectively \n" +
+                 "This textbox will update when you select an option\n")
                  .WithColor(Discord.Color.Teal);
 
             var menuBuilder = new SelectMenuBuilder()
@@ -85,16 +91,16 @@ namespace Splatterbot.Commands
             var builder = new ComponentBuilder()
                 .WithSelectMenu(menuBuilder);
 
-            await Context.Channel.SendMessageAsync("\n", components: builder.Build(), embed: embed.Build());
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Content = "\n"; message.Embed = embed.Build(); message.Components = builder.Build(); }); //("\n", components: builder.Build(), embed: embed.Build());
         }
 
         //COMMAND: CREDITS
         //DESCRIPTION: PRODUCES INFORMATION ON THE RESOURCES THAT HELP MADE THIS BOT POSSIBLE. :) 
-        //DESCRIPTION: PRODUCES INFORMATION ON A COMMAND OR LISTS ALL COMMANDS 
-        //PARAMETERS: $$HELP [COMMAND]
-        [Command("credits")]
+        [SlashCommand("credits", "Look at information related to the creation of this bot")]
         public async Task Credits()
         {
+            await DeferAsync();
+
             //Grabbing of relavent data to randomly select from
             string[] text = TextArray.getBodyText();
 
@@ -105,7 +111,7 @@ namespace Splatterbot.Commands
                  text[5])
                  .WithColor(Discord.Color.DarkBlue);
 
-            await Context.Channel.SendMessageAsync(embed: embed.Build());
+            await Context.Interaction.ModifyOriginalResponseAsync(message => { message.Embed = embed.Build(); });
         }
     }
 }
