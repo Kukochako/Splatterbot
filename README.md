@@ -2,7 +2,7 @@
 Splatoon 2 bot used for getting information related to current maps, gamemodes, and splatnet gear
 
 ## Bring Splatterbot to your server right now!
-Click [here](https://discord.com/api/oauth2/authorize?client_id=942489584514768896&permissions=0&scope=bot) to add splatterbot!
+Click [here](https://discord.com/oauth2/authorize?client_id=942489584514768896&permissions=8&integration_type=0&scope=bot+applications.commands) to add splatterbot!
 
 ## Basic Features!
 Here are some of the features that Splatterbot can do for you:
